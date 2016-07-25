@@ -49,35 +49,13 @@
 
     <h3>Part2. Organising the routes</h3>
     <p>
-        Now open you your 'app.js' (or whatever your angular js is called) and make sure you have 'ngRoute'
+        You want to make sure you pass your :slug into your controller through your $routeProvider. It should look something like this:
     </p>
+        <script src="https://gist.github.com/iamlukem/d2e332d56debd95d69fdca4b2e5d48e7.js"></script>
     <p>
-        <code>
-            angular.module('myapp', ['ngRoute'])
-        </code>
+        The :slug variable is essentially a 'catch all'. If you have a specific slug it may look like this.
     </p>
-    <p>
-        Now we want to make sure you pass your :slug into your controller through your $routeProvider. It should look something like this:
-    </p>
-    <code>
-        .config(function($routeProvider, $locationProvider) {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;$routeProvider<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.when('/:slug', {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;templateUrl: myLocalized.partials + 'page.php',<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;controller: 'Main'<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;$locationProvider.html5Mode(true); //important to remove # from URL<br>
-        })
-    </code>
-    <p>
-        so the :slug is essentially a catch all. If you have a specific slug it may look like this.
-    </p>
-    <code>
-        &nbsp;&nbsp;&nbsp;&nbsp;.when('/specific-slug', {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;templateUrl: myLocalized.partials + 'page-specific-slug.php',<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;controller: 'SpecificController'<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;})<br>
-    </code>
+        <script src="https://gist.github.com/iamlukem/84a212c0efb96548ec2af1c905e8521e.js"></script>
     <p>
         Either way, it is important to know the slug for the next part.
     </p>
@@ -85,15 +63,8 @@
     <p>
         So here is an example of the controller which is calling the JSON menu. If it sucessfully retrieves the menu we will log it to the console.
     </p>
-    <code>
-    .controller('Main', function($scope, $rootScope, $http, $routeParams) {<br>
-    &nbsp;&nbsp;&nbsp;&nbsp; // Most likely other code here to pass your conetnt to your view.<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;$http.get('/wp-json/wp-api-menus/v2/menu-locations/main_navigation_menu ').success(function(menu){<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('Menu Success'); //quick log to check its working<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;});<br>
-    })
-    </code>
+    <script src="https://gist.github.com/iamlukem/b4102f20fc3551646e4981ef2fc9abc9.js"></script>
+
     <h4>Filtering through the menu.</h4>
     <p>Once we have the JSON call working sweet. we have to:</p>
     <ol>
@@ -103,44 +74,17 @@
         <li>Add some extra functionality if the item is at the start or end</li>
         <li>Pass the items to the view</li>
     </ol>
-    <code>
-        .controller('Main', function($scope, $rootScope, $http, $routeParams) {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;$http.get('/wp-json/wp-api-menus/v2/menu-locations/main_navigation_menu ').success(function(menu){<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var location = 0;<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var menuLength = menu.length-1; // cause arrays start at 0 not 1<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;angular.forEach(menu, function(value, key) { // standard forEach loop<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var url = value.url; // store the current items url<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(url.indexOf($routeParams.slug) > -1) {// check to see if it contains the slug passed to the controller<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;location = key; // store the position for later use<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(location == 0) { // if the location of the current page is at the start of the menu<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$scope.menunext = menu[location+1]; // set the next link to be the next menu item<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$scope.menuprev = menu[menuLength]; // set the prev link to be the last item in the menu<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else if(location == menuLength) { // if the location of the current page is at the end of the menu<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$scope.menunext = menu[0]; // set the next link to be the first menu item<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$scope.menuprev = menu[location-1]; // set the prev link to be the prevoius menu item<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$scope.menunext = menu[location+1]; // set the next link to be the next menu item<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$scope.menuprev = menu[location-1]; // set the prev link to be the prevoius menu item<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;});<br>
-        })
-    </code>
+    <script src="https://gist.github.com/iamlukem/9484fc9d5dea810747e055d0775a8447.js"></script>
 
     <h3>Part4. The View.</h3>
     <p>
         So with our items passed though the scope all we have to do is display the menu data.
     </p>
-    <code>
-        &lt;a href="{{menuprev.url}}"&gt;PREV: {{menuprev.title}}&lt;/a&gt;<br>
-        &lt;a href="{{menunext.url}}"&gt;NEXT: {{menunext.title}}&lt;/a&gt;
-    </code>
-    <p>
-        I plan to style this page and make the tutorial better, however, if you can't wait you can follow me here <a href="https://twitter.com/iamlukem">@iamlukem</a> and ask any qiestions.
-    </p>
+    <script src="https://gist.github.com/iamlukem/a6fae3456ec1de40624ae5921289f3b9.js"></script>
 
+    <a href="https://github.com/iamlukem/wordpress-angular-prev-next-menu-items/blob/master/app.js">View the Repo</a>
+<p>
+    I plan to style this page and make the tutorial better, however, if you can't wait you can follow me here <a href="https://twitter.com/iamlukem">@iamlukem</a> and ask any questions.
+</p>
 </body>
 </html>
